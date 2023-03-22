@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qiniu/log"
+	log "github.com/charmbracelet/log"
 )
 
 var ErrGoTimeout = errors.New("GoTimeoutFunc")
@@ -29,7 +29,7 @@ func GoTimeoutFunc(timeout time.Duration, f func() error) chan error {
 		case err = <-GoFunc(f):
 			ch <- err
 		case <-time.After(timeout):
-			log.Debugf("timeout: %v", f)
+			log.Infof("timeout: %v", f)
 			ch <- ErrGoTimeout
 		}
 	}()

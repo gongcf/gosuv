@@ -1,6 +1,6 @@
 /*
-   分布式实现
-   话外：作者的整体代码结构对于我的分布式修改太合适了
+分布式实现
+话外：作者的整体代码结构对于我的分布式修改太合适了
 */
 package main
 
@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/bluele/gcache"
+	log "github.com/charmbracelet/log"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/qiniu/log"
 )
 
 type Cluster struct {
@@ -101,12 +101,12 @@ func (cluster *Cluster) cmdJoinCluster(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-//获取分布式系统下所有的内容
+// 获取分布式系统下所有的内容
 func (cluster *Cluster) cmdQueryDistributedPrograms(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	slaves := []string{}
-	for _, v := range cluster.slaves.GetALL() {
+	for _, v := range cluster.slaves.GetALL(false) {
 		if slave, ok := v.(string); ok {
 			slaves = append(slaves, slave)
 		}
@@ -119,7 +119,7 @@ func (cluster *Cluster) cmdQueryDistributedPrograms(w http.ResponseWriter, r *ht
 		if body, err := cluster.requestSlave(reqUrl, http.MethodGet, nil); err == nil {
 			jsonOut += fmt.Sprintf("\"%s\":%s", slave, body)
 		}
-		if idx < cluster.slaves.Len()-1 {
+		if idx < cluster.slaves.Len(false)-1 {
 			jsonOut += ","
 		}
 		idx += 1

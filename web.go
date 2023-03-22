@@ -18,10 +18,11 @@ import (
 	"syscall"
 	"time"
 
+	log "github.com/charmbracelet/log"
+
 	"github.com/go-yaml/yaml"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/qiniu/log"
 	_ "github.com/shurcooL/vfsgen"
 	"github.com/soopsio/gosuv/gops"
 	"github.com/soopsio/kexec"
@@ -32,7 +33,8 @@ var defaultGosuvDir string
 func init() {
 	defaultGosuvDir = os.Getenv("GOSUV_HOME_DIR")
 	if defaultGosuvDir == "" {
-		defaultGosuvDir = filepath.Join(UserHomeDir(), ".gosuv")
+		// defaultGosuvDir = filepath.Join(UserHomeDir(), ".gosuv")
+		defaultGosuvDir = "./"
 	}
 	http.Handle("/res/", http.StripPrefix("/res/", http.FileServer(Assets))) // http.StripPrefix("/res/", Assets))
 }
@@ -129,7 +131,7 @@ func (s *Supervisor) addOrUpdateProgram(pg Program) error {
 			return nil
 		}
 		s.broadcastEvent(pg.Name + " update")
-		log.Println("Update:", pg.Name)
+		log.Print("Update:", pg.Name)
 		origProc := s.procMap[pg.Name]
 		isRunning := origProc.IsRunning()
 		go func() {
@@ -303,7 +305,7 @@ func (s *Supervisor) hShutdown(w http.ResponseWriter, r *http.Request) {
 
 func (s *Supervisor) hReload(w http.ResponseWriter, r *http.Request) {
 	err := s.loadDB()
-	log.Println("reload config file")
+	log.Print("reload config file")
 	if err == nil {
 		s.renderJSON(w, JSONResponse{
 			Status: 0,
@@ -534,13 +536,13 @@ func (s *Supervisor) wsEvents(w http.ResponseWriter, r *http.Request) {
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {
-			log.Println("read:", mt, err)
+			log.Print("read:", mt, err)
 			break
 		}
 		log.Printf("recv: %v %s", mt, message)
 		err = c.WriteMessage(mt, message)
 		if err != nil {
-			log.Println("write:", err)
+			log.Print("write:", err)
 			break
 		}
 	}
@@ -548,10 +550,10 @@ func (s *Supervisor) wsEvents(w http.ResponseWriter, r *http.Request) {
 
 func (s *Supervisor) wsLog(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
-	log.Println(name)
+	log.Print(name)
 	proc, ok := s.procMap[name]
 	if !ok {
-		log.Println("No such process")
+		log.Print("No such process")
 		// TODO: raise error here?
 		return
 	}
@@ -584,14 +586,14 @@ func (s *Supervisor) wsPerf(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	proc, ok := s.procMap[name]
 	if !ok {
-		log.Println("No such process")
+		log.Print("No such process")
 		// TODO: raise error here?
 		return
 	}
 	for {
 		// c.SetWriteDeadline(time.Now().Add(3 * time.Second))
 		if proc.cmd == nil || proc.cmd.Process == nil {
-			log.Println("process not running")
+			log.Print("process not running")
 			return
 		}
 		pid := proc.cmd.Process.Pid
@@ -618,7 +620,7 @@ func (s *Supervisor) Close() {
 	for _, proc := range s.procMap {
 		s.stopAndWait(proc.Name)
 	}
-	log.Println("server closed")
+	log.Print("server closed")
 }
 
 func (s *Supervisor) catchExitSignal() {
@@ -627,7 +629,7 @@ func (s *Supervisor) catchExitSignal() {
 	go func() {
 		for sig := range sigC {
 			if sig == syscall.SIGHUP {
-				log.Println("Receive SIGHUP, just ignore")
+				log.Print("Receive SIGHUP, just ignore")
 				continue
 			}
 			log.Printf("Got signal: %v, stopping all running process\n", sig)

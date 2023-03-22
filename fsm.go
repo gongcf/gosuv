@@ -30,10 +30,10 @@ import (
 	"time"
 
 	"github.com/axgle/pinyin"
+	log "github.com/charmbracelet/log"
 	"github.com/kennygrant/sanitize"
-	"github.com/lunny/dingtalk_webhook"
+	dingtalk "github.com/lunny/dingtalk_webhook"
 	"github.com/natefinch/lumberjack"
-	"github.com/qiniu/log"
 	"github.com/soopsio/gosuv/pushover"
 	"github.com/soopsio/kexec"
 )
@@ -325,9 +325,9 @@ func (p *Process) stopCommand() {
 		}()
 		select {
 		case <-stopch: // TODO(ssx): add it to config
-			log.Println(p.Name, "停止完成")
+			log.Print(p.Name, "停止完成")
 		case <-time.After(10 * time.Second):
-			log.Println(p.Name, "停止超时，强制 kill")
+			log.Print(p.Name, "停止超时，强制 kill")
 			p.cmd.Process.Signal(syscall.SIGKILL)
 		}
 	}
@@ -364,7 +364,7 @@ func (p *Process) startCommand() {
 	// p.Output.Reset() // Donot reset because log is still needed.
 	log.Printf("start cmd(%s): %s", p.Name, p.Command)
 	p.cmd = p.buildCommand()
-
+	log.Warn("startCommand cmd", p.cmd.Args, p.cmd.Dir, p.cmd.Path)
 	p.SetState(Running)
 	if err := p.cmd.Start(); err != nil {
 		log.Warnf("program %s start failed: %v", p.Name, err)
@@ -394,7 +394,7 @@ func (p *Process) startCommand() {
 
 			p.waitNextRetry()
 		case <-p.stopC:
-			log.Println("recv stop command")
+			log.Print("recv stop command")
 			p.stopCommand() // clean up all process
 		}
 

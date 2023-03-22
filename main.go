@@ -11,8 +11,8 @@ import (
 	"runtime"
 	"strings"
 
+	log "github.com/charmbracelet/log"
 	"github.com/imroc/req"
-	"github.com/qiniu/log"
 	"github.com/urfave/cli"
 )
 
@@ -112,7 +112,12 @@ func checkServerStatus() error {
 
 func main() {
 	var defaultConfigPath = filepath.Join(defaultGosuvDir, "conf/config.yml")
+	// f, _ := os.OpenFile("./log.txt", os.O_RDWR|os.O_CREATE, 0666)
+	// // ioutil.w
+	// log.Default().SetOutput(f)
+	log.Default().SetLevel(log.DebugLevel)
 
+	log.Info("start...")
 	app := cli.NewApp()
 	app.Name = "gosuv"
 	app.Version = version

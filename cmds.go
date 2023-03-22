@@ -77,7 +77,7 @@ func actionStartServer(c *cli.Context) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := ioutil.WriteFile("/var/run/gosuv.pid", []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
+		if err := ioutil.WriteFile("./gosuv.pid", []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
 			log.Fatalln(err)
 		}
 		select {
